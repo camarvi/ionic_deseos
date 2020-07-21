@@ -1,7 +1,10 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { DeseosService } from '../../services/deseos.service';
 import { Lista } from 'src/app/models/lista.model';
 import {  Router } from '@angular/router';
+import { AlertController, IonList } from '@ionic/angular';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
+
 
 @Component({
   selector: 'app-listas',
@@ -10,11 +13,12 @@ import {  Router } from '@angular/router';
 })
 export class ListasComponent implements OnInit {
 
-
+@ViewChild( IonList ) cierralista : IonList;
 @Input() terminada = true;
 
   constructor(public deseosService : DeseosService,
-              private router : Router) { 
+              private router : Router,
+              private alertCtrl : AlertController) { 
 
   }
 
@@ -34,5 +38,53 @@ export class ListasComponent implements OnInit {
   borrarLista(lista: Lista){
     this.deseosService.borrarLista(lista);
   }
+
+  async editarLista(lista : Lista){
+
+    const alert =  await this.alertCtrl.create({
+      cssClass: 'my-custom-class',
+      header: 'Edit List',
+      //subHeader: 'Subtitle',
+      //message: 'This is an alert message.',
+      inputs : [
+        {
+        name : 'titulo' ,
+        type : 'text',
+        value : lista.titulo,
+        placeholder : 'Nombre de la lista'
+        }
+      ],
+      buttons: [
+        {
+          text : 'Cancelar',
+          role : 'cancel',
+          handler : ()=>{
+            console.log("Cancelar");
+            this.cierralista.closeSlidingItems();
+          }
+        },
+        {
+          text : 'Actualizar',
+          handler : (data )=>{
+            console.log(data);
+            if (data.titulo.length === 0) {
+              return;
+            }  // Se crea la lista
+           
+           lista.titulo = data.titulo;
+           this.deseosService.guardarStorage();
+           this.cierralista.closeSlidingItems();
+          
+          }
+        }
+      ]
+    });
+  
+    //await alert.present();
+    alert.present();
+
+  }
+
+
 
 }
